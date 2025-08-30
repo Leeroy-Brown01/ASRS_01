@@ -113,8 +113,24 @@ export default function Index() {
     );
   }
 
+
   if (!user) {
-    return <AuthComponents onAuthSuccess={() => {}} />;
+    // When authentication succeeds, fetch user profile and set user state for instant dashboard redirect
+    return <AuthComponents onAuthSuccess={async () => {
+      if (auth.currentUser) {
+        setLoading(true);
+        try {
+          const userProfile = await getUserProfile(auth.currentUser.uid);
+          if (userProfile) {
+            setUser(userProfile as User);
+          }
+        } catch (error) {
+          console.error('Error fetching user profile after auth:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    }} />;
   }
 
   const navigationItems = getNavigationItems();
