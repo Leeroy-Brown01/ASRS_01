@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +27,8 @@ export default function Index() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState('dashboard');
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -33,19 +36,24 @@ export default function Index() {
         try {
           const userProfile = await getUserProfile(firebaseUser.uid);
           if (userProfile) {
-            setUser(userProfile as User);
+            const typedUser = userProfile as User;
+            setUser(typedUser);
+            // Redirect to dashboard route based on role
+            if (typedUser.role === 'admin') navigate('/admin');
+            else if (typedUser.role === 'reviewer') navigate('/reviewer');
+            else if (typedUser.role === 'applicant') navigate('/applicant');
           }
         } catch (error) {
           console.error('Error fetching user profile:', error);
         }
       } else {
         setUser(null);
+        if (location.pathname !== '/') navigate('/');
       }
       setLoading(false);
     });
-
     return () => unsubscribe();
-  }, []);
+  }, [navigate, location.pathname]);
 
   const handleSignOut = async () => {
     try {
@@ -122,7 +130,12 @@ export default function Index() {
         try {
           const userProfile = await getUserProfile(auth.currentUser.uid);
           if (userProfile) {
-            setUser(userProfile as User);
+            const typedUser = userProfile as User;
+            setUser(typedUser);
+            // Redirect to dashboard route based on role
+            if (typedUser.role === 'admin') navigate('/admin');
+            else if (typedUser.role === 'reviewer') navigate('/reviewer');
+            else if (typedUser.role === 'applicant') navigate('/applicant');
           }
         } catch (error) {
           console.error('Error fetching user profile after auth:', error);
